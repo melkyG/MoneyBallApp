@@ -147,7 +147,7 @@ class _BasketballGameState extends State<BasketballGame> {
                   style: TextStyle(
                     fontSize: 32, 
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey
+                    color: Colors.orange
                   )
                 ),
               )
