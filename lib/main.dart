@@ -4,16 +4,8 @@ import 'dart:math';
 
 void main() {
   runApp(MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: Container(
-          width: 360, // Mobile width (e.g., Galaxy S20)
-          height: 640, // Mobile height
-          color: Colors.black,
-          child: BasketballGame(),
-        ),
-      ),
-    ),
+    debugShowCheckedModeBanner: false,
+    home: BasketballGame(),
   ));
 }
 
@@ -34,7 +26,7 @@ class _BasketballGameState extends State<BasketballGame> {
   int timeLeft = 60;
   bool showIntro = true;
   bool inGame = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -144,19 +136,22 @@ class _BasketballGameState extends State<BasketballGame> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    double textSize = screenWidth * 0.06;
+
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: null, // Remove the app bar
       body: SafeArea(
         child: showIntro
             ? Center(
                 child: Text(
-                  "Money Ball", 
+                  "Money Ball",
                   style: TextStyle(
-                    fontSize: 32, 
+                    fontSize: textSize,
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange
-                  )
+                    color: Colors.orange,
+                  ),
                 ),
               )
             : inGame
@@ -168,38 +163,44 @@ class _BasketballGameState extends State<BasketballGame> {
                       }
                     },
                     child: Container(
-                      color: Colors.transparent, // Make container transparent
+                      color: Colors.transparent,
                       width: double.infinity,
                       height: double.infinity,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          
-                          Text("Time Left: $timeLeft", 
-                            style: TextStyle(fontSize: 24, color: Colors.white)),
-                          Text("Score: $score", 
-                            style: TextStyle(fontSize: 24, color: Colors.white)),
-                          Text("Shots Taken: $shotsTaken / $maxShots", 
-                            style: TextStyle(fontSize: 24, color: Colors.white)),
-                          Text("Held Time: ${heldTime.toStringAsFixed(1)}s", 
-                            style: TextStyle(fontSize: 24, color: Colors.white)),
+                          Text("Time Left: $timeLeft",
+                              style: TextStyle(
+                                  fontSize: textSize, color: Colors.white)),
+                          SizedBox(height: screenHeight * 0.01),
+                          Text("Score: $score",
+                              style: TextStyle(
+                                  fontSize: textSize, color: Colors.white)),
+                          SizedBox(height: screenHeight * 0.01),
+                          Text("Shots Taken: $shotsTaken / $maxShots",
+                              style: TextStyle(
+                                  fontSize: textSize, color: Colors.white)),
+                          SizedBox(height: screenHeight * 0.02),
+                          Text("Held Time: ${heldTime.toStringAsFixed(1)}s",
+                              style: TextStyle(
+                                  fontSize: textSize * 0.8,
+                                  color: Colors.white)),
                           Text(
-                                  "Optimal Time: ${optimalTime.toStringAsFixed(2)}s",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'Courier',
-                                    fontSize: 12,
-                                  ),
-                                ),
-                          Text("Difference: ${(heldTime - optimalTime).abs().toStringAsFixed(2)}s",
-                                style: TextStyle(
-                                  color: (heldTime - optimalTime).abs() < 0.2 
-                                    ? Colors.green 
-                                    : Colors.red,
-                                  fontFamily: 'Courier',
-                                  fontSize: 12,
-                                )),
-                          SizedBox(height: 50),
+                              "Optimal Time: ${optimalTime.toStringAsFixed(2)}s",
+                              style: TextStyle(
+                                  fontSize: textSize * 0.6,
+                                  color: Colors.white)),
+                          Text(
+                            "Difference: ${(heldTime - optimalTime).abs().toStringAsFixed(2)}s",
+                            style: TextStyle(
+                              fontSize: textSize * 0.6,
+                              color: (heldTime - optimalTime).abs() < 0.2
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -210,27 +211,34 @@ class _BasketballGameState extends State<BasketballGame> {
                       children: [
                         if (shotsTaken == maxShots || timeLeft == 0) ...[
                           Text(
-                            "Game Over!", 
+                            "Game Over!",
                             style: TextStyle(
-                              fontSize: 32, 
+                              fontSize: textSize,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white
-                            )
+                              color: Colors.white,
+                            ),
                           ),
-                          Text(
-                            "Final Score: $score", 
-                            style: TextStyle(fontSize: 24, color: Colors.white)
-                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          Text("Final Score: $score",
+                              style: TextStyle(
+                                  fontSize: textSize * 0.8,
+                                  color: Colors.white)),
                         ],
-                        SizedBox(height: 20),
+                        SizedBox(height: screenHeight * 0.05),
                         ElevatedButton(
                           onPressed: startGame,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
+                            padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.015,
+                                horizontal: screenWidth * 0.15),
                           ),
-                          child: Text("Play", style: TextStyle(color: Colors.white)),
+                          child: Text("Play",
+                              style: TextStyle(
+                                  fontSize: textSize * 0.8,
+                                  color: Colors.white)),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: screenHeight * 0.02),
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -240,8 +248,14 @@ class _BasketballGameState extends State<BasketballGame> {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey,
+                            padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.015,
+                                horizontal: screenWidth * 0.12),
                           ),
-                          child: Text("Quit", style: TextStyle(color: Colors.white)),
+                          child: Text("Quit",
+                              style: TextStyle(
+                                  fontSize: textSize * 0.8,
+                                  color: Colors.white)),
                         ),
                       ],
                     ),
