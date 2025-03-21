@@ -174,7 +174,7 @@ class _BasketballGameState extends State<BasketballGame> {
                           Text(
                                   "Optimal Time: ${optimalTime.toStringAsFixed(2)}s",
                                   style: TextStyle(
-                                    color: Colors.orange,
+                                    color: Colors.white,
                                     fontFamily: 'Courier',
                                     fontSize: 12,
                                   ),
