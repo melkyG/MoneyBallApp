@@ -231,6 +231,7 @@ class _BasketballGameState extends State<BasketballGame> {
                           child: Text("Play", style: TextStyle(color: Colors.white)),
                         ),
                         SizedBox(height: 10),
+                        /*
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -242,7 +243,7 @@ class _BasketballGameState extends State<BasketballGame> {
                             backgroundColor: Colors.grey,
                           ),
                           child: Text("Quit", style: TextStyle(color: Colors.white)),
-                        ),
+                        ),*/
                       ],
                     ),
                   ),
