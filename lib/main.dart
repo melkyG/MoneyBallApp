@@ -38,7 +38,7 @@ class _BasketballGameState extends State<BasketballGame> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 2), () {
       setState(() {
         showIntro = false;
       });
@@ -82,15 +82,23 @@ class _BasketballGameState extends State<BasketballGame> {
 
   void startHolding() {
     if (shotsTaken == 0 && inGame) {
-    startGameTimer(); // Start the timer when player begins their first shot
+      startGameTimer(); // Start the timer when player begins their first shot
     }
+    
     setState(() {
       isHolding = true;
       heldTime = 0.0;
     });
+    
     holdTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
       setState(() {
         heldTime += 0.1;
+        
+        // Auto-release after 3 seconds of holding
+        if (heldTime >= 2.5) {
+          timer.cancel(); // Cancel the timer first to prevent further updates
+          releaseShot(); // Call the release function
+        }
       });
     });
   }
@@ -154,7 +162,11 @@ class _BasketballGameState extends State<BasketballGame> {
             : inGame
                 ? GestureDetector(
                     onTapDown: (_) => startHolding(),
-                    onTapUp: (_) => releaseShot(),
+                    onTapUp: (_) {
+                      if (isHolding) {
+                        releaseShot();
+                      }
+                    },
                     child: Container(
                       color: Colors.transparent, // Make container transparent
                       width: double.infinity,
