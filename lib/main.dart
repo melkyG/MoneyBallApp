@@ -76,7 +76,8 @@ class _BasketballGameState extends State<BasketballGame> {
       timeLeft = 60;
       _generateShotValues();
       resetOptimalTime();
-      shotResults = List.generate(7, (_) => List.filled(5, null)); // Reset indicator
+      shotProgress = List.generate(7, (_) => []);  // Reset shot indicators
+      shotResults = List.generate(7, (_) => List.filled(5, null));
     });
   }
 
@@ -101,7 +102,7 @@ class _BasketballGameState extends State<BasketballGame> {
 
   void resetOptimalTime() {
     setState(() {
-      optimalTime = Random().nextDouble() + 1.0;
+      optimalTime = Random().nextDouble() + 0.85;
     });
   }
 
@@ -268,7 +269,7 @@ int getShotPoints(int shotIndex) {
                             ElevatedButton(
                               onPressed: startGame,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
+                                backgroundColor: Colors.green,
                               ),
                               child: Text("Ready", style: TextStyle(color: Colors.white)),
                             ),
@@ -290,7 +291,7 @@ int getShotPoints(int shotIndex) {
                         ),
                       ),
           ),
-        if (inGame) (buildShotIndicator()), // Add the shooting progress indicator
+        if (inGame || (shotsTaken > 0)) (buildShotIndicator()), // Add the shooting progress indicator
         ],              
       ),
     );  
