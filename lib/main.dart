@@ -1,4 +1,26 @@
 import 'package:flutter/material.dart';
+import 'ui.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: Scaffold(
+      body: Center(
+        child: Container(
+          width: 360, // Mobile width (e.g., Galaxy S20)
+          height: 640, // Mobile height
+          color: Colors.black,
+          child: BasketballGame(),
+        ),
+      ),
+    ),
+  ));
+}
+
+
+
+
+/*
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -30,6 +52,7 @@ class _BasketballGameState extends State<BasketballGame> {
   bool inGame = false;
   double heldTime = 0.0;
   double optimalTime = 1.5;
+  double maxHoldTime = 2.5;
   bool isHolding = false;
   Timer? holdTimer;
   Timer? gameTimer;
@@ -38,7 +61,6 @@ class _BasketballGameState extends State<BasketballGame> {
   List<int> shotValues = [];
   List<List<bool>> shotProgress = List.generate(7, (_) => []); //track shot success for shot progress indicator
   List<List<bool?>> shotResults = List.generate(7, (_) => List.filled(5, null));
-
 
   @override
   void initState() {
@@ -70,6 +92,7 @@ class _BasketballGameState extends State<BasketballGame> {
 
   void startGame() {
     setState(() {
+      holdTimer?.cancel();
       inGame = true;
       score = 0;
       shotsTaken = 0;
@@ -121,7 +144,7 @@ class _BasketballGameState extends State<BasketballGame> {
         heldTime += 0.1;
 
         // Auto-release after 3 seconds of holding
-        if (heldTime >= 2.5) {
+        if (heldTime >= maxHoldTime) {
           timer.cancel();
           releaseShot();
         }
@@ -274,19 +297,6 @@ int getShotPoints(int shotIndex) {
                               child: Text("Ready", style: TextStyle(color: Colors.white)),
                             ),
                             SizedBox(height: 10),
-                            /*
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  showIntro = false;
-                                  inGame = false;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey,
-                              ),
-                              child: Text("Quit", style: TextStyle(color: Colors.white)),
-                            ),*/
                           ],
                         ),
                       ),
@@ -351,5 +361,6 @@ int getShotPoints(int shotIndex) {
       ),
     );
   }
-
 }
+
+*/
