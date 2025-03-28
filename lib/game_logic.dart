@@ -18,7 +18,7 @@ class GameLogic {
   List<int> shotValues = [];
   List<List<bool>> shotProgress = List.generate(7, (_) => []);
   List<List<bool?>> shotResults = List.generate(7, (_) => List.filled(5, null));
-
+  
   void initializeGame() {
     _generateShotValues();
     showIntro = true;
