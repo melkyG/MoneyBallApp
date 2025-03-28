@@ -13,6 +13,7 @@ class GameLogic {
   bool isHolding = false;
   Timer? holdTimer;
   Timer? gameTimer;
+  bool shotMade = false;
 
   final int totalShots = 27; // 5 racks * 5 shots + 2 money balls
   List<int> shotValues = [];
@@ -97,7 +98,7 @@ class GameLogic {
     if (holdTimer != null) {
       holdTimer!.cancel();
     }
-    
+
     shotsTaken++;
     isHolding = false;
 
@@ -105,10 +106,11 @@ class GameLogic {
     double missChance = difference <= 0.1 ? 0 : (difference - 0.1) / 0.2;
 
     if (missChance > 1.0) {
-      missChance = 1.0;
+      shotMade = false;
+    } else {
+      shotMade = Random().nextDouble() > missChance;
     }
 
-    bool shotMade = Random().nextDouble() > missChance;
     int row = getShotRow(shotsTaken - 1);
     
     if (row < shotProgress.length) {
@@ -128,7 +130,7 @@ class GameLogic {
     updateState();
   }
 
-  // Helper methods 
+  // Helper methods
   int getShotRow(int shotIndex) {
     // Order: Rack 1, Rack 2, Money Ball 1, Rack 3, Money Ball 2, Rack 4, Rack 5
     if (shotIndex < 5) return 0;
@@ -141,7 +143,10 @@ class GameLogic {
   }
 
   int getShotPoints(int shotIndex) {
-    if (shotIndex == 10 || shotIndex == 16) return 3; // Money Balls worth 3 points
-    return (shotIndex % 5 == 4) ? 2 : 1; // Last ball in each rack worth 2, others worth 1
+    if (shotIndex == 10 || shotIndex == 16)
+      return 3; // Money Balls worth 3 points
+    return (shotIndex % 5 == 4)
+        ? 2
+        : 1; // Last ball in each rack worth 2, others worth 1
   }
 }
