@@ -12,7 +12,7 @@ class AnimatedBasketballNet extends StatefulWidget {
     this.width = 40,
     this.height = 60,
     required this.triggerSwish,
-    this.delayInMilliseconds = 600, // Default delay of 300 ms
+    this.delayInMilliseconds = 1300, // Default delay of 300 ms
   });
 
   @override
@@ -35,7 +35,7 @@ class _AnimatedBasketballNetState extends State<AnimatedBasketballNet>
       duration: const Duration(milliseconds: 500),
     );
 
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2)
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15)
         .chain(CurveTween(curve: Curves.elasticOut))
         .animate(_controller);
 
