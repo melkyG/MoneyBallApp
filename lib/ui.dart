@@ -234,6 +234,13 @@ class _BasketballGameState extends State<BasketballGame>
       appBar: null,
       body: Stack(
         children: [
+           // Background image (replaces black color)
+        Positioned.fill(
+          child: Image.asset(
+            "assets/images/jordan.png",
+            fit: BoxFit.cover,
+          ),
+        ),
           if (gameLogic.inGame) ...[
             Positioned.fill(
               child: Image.asset(
@@ -366,22 +373,58 @@ class _BasketballGameState extends State<BasketballGame>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (gameLogic.shotsTaken == gameLogic.totalShots ||
-                                gameLogic.timeLeft == 0) ...[
-                              Text(
-                                "Times Up!",
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                            if (gameLogic.shotsTaken == gameLogic.totalShots || gameLogic.timeLeft == 0) ...[
+                              Stack(
+                                children: [
+                                  // Stroke text (black border)
+                                  Text(
+                                    "Times Up!",
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      foreground: Paint()
+                                        ..style = PaintingStyle.stroke
+                                        ..strokeWidth = 4
+                                        ..color = Colors.black,
+                                    ),
+                                  ),
+                                  // Fill text (white text)
+                                  Text(
+                                    "Times Up!",
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                "Final Score: ${gameLogic.score}",
-                                style: TextStyle(
-                                    fontSize: 24, color: Colors.white),
+                              SizedBox(height: 10),
+                              Stack(
+                                children: [
+                                  Text(
+                                    "Final Score: ${gameLogic.score}",
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      foreground: Paint()
+                                        ..style = PaintingStyle.stroke
+                                        ..strokeWidth = 3
+                                        ..color = Colors.black,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Final Score: ${gameLogic.score}",
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
+
                             SizedBox(height: 20),
                             ElevatedButton(
                               onPressed: () {
@@ -926,6 +969,7 @@ class PulsingShotClock extends StatefulWidget {
 
   @override
   _PulsingShotClockState createState() => _PulsingShotClockState();
+  
 }
 
 class _PulsingShotClockState extends State<PulsingShotClock>
@@ -955,7 +999,7 @@ class _PulsingShotClockState extends State<PulsingShotClock>
 
   @override
   Widget build(BuildContext context) {
-    final bool isWarning = widget.timeLeft <= 10;
+    final bool isWarning = widget.timeLeft <= 10 && widget.timeLeft > 0;
 
     return AnimatedBuilder(
       animation: _animation,
