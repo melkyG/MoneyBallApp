@@ -41,10 +41,8 @@ class _BallTrajectoryState extends State<BallTrajectory>
         ? Offset(0.0, -1.95)
         : [
             Offset(-0.2, -2.5), // Base value
-            Offset(-0.2 * Random().nextDouble().clamp(0.9, 1.1),
-                -2.5 * Random().nextDouble().clamp(0.9, 1.1)),
-            Offset(-0.2 * Random().nextDouble().clamp(0.9, 1.1),
-                -2.5 * Random().nextDouble().clamp(0.9, 1.1)),
+            Offset(0.3, -2.4),
+            Offset(-0.25, -2.7),
           ][Random().nextInt(3)];
 
     final groundPoint =
