@@ -15,7 +15,8 @@ class BallTrajectory extends StatefulWidget {
   _BallTrajectoryState createState() => _BallTrajectoryState();
 }
 
-class _BallTrajectoryState extends State<BallTrajectory> with SingleTickerProviderStateMixin {
+class _BallTrajectoryState extends State<BallTrajectory>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _trajectory;
 
@@ -49,15 +50,11 @@ class _BallTrajectoryState extends State<BallTrajectory> with SingleTickerProvid
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Positioned(
-          left: 162, // Adjust based on game layout
-          top: 500,  // Starting point of ball
-          child: Transform.translate(
-            offset: _trajectory.value * 300, // Adjust multiplier as needed
-            child: Image.asset(
-              "assets/images/ball.png",
-              width: 24,
-            ),
+        return Transform.translate(
+          offset: _trajectory.value * 300,
+          child: Image.asset(
+            "assets/images/ball.png",
+            width: 24,
           ),
         );
       },
