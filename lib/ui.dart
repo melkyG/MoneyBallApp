@@ -3,13 +3,15 @@ import 'dart:async';
 import 'dart:math'; // For pow() function
 import 'game_logic.dart';
 import 'traj_anim.dart';
+import 'animated_basketball_net.dart';
 
 class BasketballGame extends StatefulWidget {
   @override
   _BasketballGameState createState() => _BasketballGameState();
 }
 
-class _BasketballGameState extends State<BasketballGame> with TickerProviderStateMixin {
+class _BasketballGameState extends State<BasketballGame>
+    with TickerProviderStateMixin {
   late GameLogic gameLogic;
   String _currentMessage = "";
   Color _messageColor = Colors.white;
@@ -18,7 +20,6 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
   //traj
   bool showBallTrajectory = false;
   double releaseDifference = 0.0;
-
 
   // Animation controller for uncover/cover
   late AnimationController _messageAnimController;
@@ -36,13 +37,15 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
 
     // Initialize uncover/cover animation controller
     _messageAnimController = AnimationController(
-      duration: const Duration(milliseconds: 600), // Total duration for sequence
+      duration:
+          const Duration(milliseconds: 600), // Total duration for sequence
       vsync: this,
     );
     _messageAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _messageAnimController,
-        curve: const Interval(0.0, 0.14, curve: Curves.easeInOut), // Uncover: 0-150ms
+        curve: const Interval(0.0, 0.14,
+            curve: Curves.easeInOut), // Uncover: 0-150ms
       ),
     )..addListener(() {
         setState(() {});
@@ -117,7 +120,8 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
       Future.delayed(Duration(milliseconds: 220), () {
         _messageAnimController.forward().then((_) {
           // Pause, then cover and slide out
-          Future.delayed(Duration(milliseconds: 600), () { // Adjusted for overlap
+          Future.delayed(Duration(milliseconds: 600), () {
+            // Adjusted for overlap
             _messageAnimController.reverse().then((_) {
               _slideController.reverse().then((_) {
                 setState(() {
@@ -182,8 +186,10 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                 builder: (context, child) {
                   double maxWidth = 200;
                   double coverWidth;
-                  if (_messageAnimController.status == AnimationStatus.forward ||
-                      _messageAnimController.status == AnimationStatus.completed) {
+                  if (_messageAnimController.status ==
+                          AnimationStatus.forward ||
+                      _messageAnimController.status ==
+                          AnimationStatus.completed) {
                     coverWidth = maxWidth * (1 - _messageAnimation.value);
                   } else {
                     coverWidth = maxWidth * (1 - _messageAnimation.value);
@@ -228,11 +234,23 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
               ),
             ),
             Positioned(
-              left: 162, // Center of 360px width - half of 40px rim width
-              top: 189,    
-              child: Image.asset(
-                "assets/images/rim.png",
-                width: 40, // Adjust size as needed
+              left: 162,
+              top: 189,
+              child: Column(
+                children: [
+                  Image.asset(
+                    "assets/images/rim.png",
+                    width: 40,
+                  ),
+                  Transform.translate(
+                    offset: Offset(0, -12.5), // move the net up
+                    child: AnimatedBasketballNet(
+                      width: 40,
+                      height: 45,
+                      triggerSwish: gameLogic.shotMade,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -254,7 +272,8 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                           if (gameLogic.shotsTaken < 27) {
                             gameLogic.startHolding(
                               () => setState(() {}),
-                              () => gameLogic.startGameTimer(() => setState(() {})),
+                              () => gameLogic
+                                  .startGameTimer(() => setState(() {})),
                             );
                           }
                         },
@@ -263,13 +282,16 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                             if (gameLogic.isHolding) {
                               print("releasing");
                               gameLogic.lastDifference =
-                                  (gameLogic.heldTime - gameLogic.optimalTime).abs();
+                                  (gameLogic.heldTime - gameLogic.optimalTime)
+                                      .abs();
                               gameLogic.releaseShot(() {
                                 setState(() {
-                                  releaseDifference = gameLogic.lastDifferenceTrue;
+                                  releaseDifference =
+                                      gameLogic.lastDifferenceTrue;
                                   showBallTrajectory = true;
                                 });
-                                showReleaseMessage(gameLogic.lastDifferenceTrue);
+                                showReleaseMessage(
+                                    gameLogic.lastDifferenceTrue);
                               });
                             }
                           }
@@ -283,8 +305,10 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                             children: [
                               Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 50.0),
-                                  child: PulsingShotClock(timeLeft: gameLogic.timeLeft),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 50.0),
+                                  child: PulsingShotClock(
+                                      timeLeft: gameLogic.timeLeft),
                                 ),
                               ),
                               Align(
@@ -297,11 +321,13 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                                     children: [
                                       Text(
                                         "Score: ${gameLogic.score}",
-                                        style: TextStyle(fontSize: 24, color: Colors.white),
+                                        style: TextStyle(
+                                            fontSize: 24, color: Colors.white),
                                       ),
                                       Text(
                                         "${gameLogic.shotsTaken} / ${gameLogic.totalShots}",
-                                        style: TextStyle(fontSize: 24, color: Colors.white),
+                                        style: TextStyle(
+                                            fontSize: 24, color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -319,7 +345,6 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                                     });
                                   },
                                 ),
-
                             ],
                           ),
                         ),
@@ -340,14 +365,17 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                               ),
                               Text(
                                 "Final Score: ${gameLogic.score}",
-                                style: TextStyle(fontSize: 24, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 24, color: Colors.white),
                               ),
                             ],
                             SizedBox(height: 20),
                             ElevatedButton(
-                              onPressed: () => setState(() => gameLogic.startGame()),
+                              onPressed: () =>
+                                  setState(() => gameLogic.startGame()),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color.fromARGB(255, 48, 245, 179),
+                                backgroundColor:
+                                    Color.fromARGB(255, 48, 245, 179),
                               ),
                               child: Text(
                                 "Ready",
@@ -362,9 +390,9 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
                           ],
                         ),
                       ),
-                      
           ),
-          if (gameLogic.inGame || (gameLogic.shotsTaken > 0)) buildShotIndicator(),
+          if (gameLogic.inGame || (gameLogic.shotsTaken > 0))
+            buildShotIndicator(),
           if (_showMessage)
             ClipRect(
               child: buildAnimatedMessage(),
@@ -374,30 +402,31 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
     );
   }
 
-
   Widget buildShootingBar() {
     // Define the time range for the bar
     const double maxHoldTime = 1.85; // Maximum hold time for scaling
     const double barHeight = 250; // Height of the shooting bar
     const double barWidth = 40.0; // Width of the shooting bar
-    
+
     // Fixed target band position (doesn't depend on time ranges anymore)
-    double targetBandCenter = barHeight * 0.7; // Position at 70% of the bar height
+    double targetBandCenter =
+        barHeight * 0.7; // Position at 70% of the bar height
     double targetBandHeight = 20.0; // Height of the target band
-    double targetBandBottom = targetBandCenter - targetBandHeight/2;
-    
+    double targetBandBottom = targetBandCenter - targetBandHeight / 2;
+
     // Calculate acceleration parameter based on optimalTime
     // Want the indicator to reach the targetBandCenter exactly at optimalTime
-    double accelerationFactor = targetBandCenter / (pow(gameLogic.optimalTime, 2));
-    
+    double accelerationFactor =
+        targetBandCenter / (pow(gameLogic.optimalTime, 2));
+
     // Calculate the current position of the moving indicator
     double heldTime = gameLogic.heldTime.clamp(0, maxHoldTime);
     double indicatorPosition = accelerationFactor * pow(heldTime, 2);
     indicatorPosition = indicatorPosition.clamp(0, barHeight);
-    
+
     // Check if the indicator is within the target band
-    bool isInTargetZone = (indicatorPosition >= targetBandBottom && 
-                          indicatorPosition <= targetBandBottom + targetBandHeight);
+    bool isInTargetZone = (indicatorPosition >= targetBandBottom &&
+        indicatorPosition <= targetBandBottom + targetBandHeight);
 
     return Padding(
       padding: const EdgeInsets.symmetric(),
@@ -409,7 +438,7 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
             width: barWidth,
             height: barHeight,
           ),
-          
+
           // The target band (fixed position)
           Positioned(
             bottom: targetBandBottom,
@@ -425,22 +454,26 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
               ),
             ),
           ),
-          
+
           // The moving indicator
           if (gameLogic.isHolding)
             Positioned(
-              bottom: 10 + indicatorPosition - targetBandHeight/2, // Center the indicator
+              bottom: 10 +
+                  indicatorPosition -
+                  targetBandHeight / 2, // Center the indicator
               child: Container(
-                width: barWidth,
-                height: targetBandHeight*0.8,
-                decoration: BoxDecoration(
-                  color: isInTargetZone ? Color.fromARGB(255, 48, 245, 179) : const Color.fromARGB(255, 221, 221, 221),
-                  border: Border.all(
-                  color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.8),
-                  width: 1,
-                ),
-                )
-              ),
+                  width: barWidth,
+                  height: targetBandHeight * 0.8,
+                  decoration: BoxDecoration(
+                    color: isInTargetZone
+                        ? Color.fromARGB(255, 48, 245, 179)
+                        : const Color.fromARGB(255, 221, 221, 221),
+                    border: Border.all(
+                      color:
+                          const Color.fromARGB(255, 0, 0, 0).withOpacity(0.8),
+                      width: 1,
+                    ),
+                  )),
             ),
         ],
       ),
@@ -468,56 +501,57 @@ class _BasketballGameState extends State<BasketballGame> with TickerProviderStat
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: List.generate(7, (row) {
-          int circleCount = (row == 2 || row == 4) ? 1 : 5;
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(7, (row) {
+            int circleCount = (row == 2 || row == 4) ? 1 : 5;
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 70, // Adjust label width
-                child: Text(
-                  labels[row],
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 70, // Adjust label width
+                  child: Text(
+                    labels[row],
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
-              ),
-              SizedBox(width: 5),
-              Row(
-                children: List.generate(circleCount, (col) {
-                  bool shotMade = row < gameLogic.shotProgress.length &&
-                      col < gameLogic.shotProgress[row].length &&
-                      gameLogic.shotProgress[row][col];
+                SizedBox(width: 5),
+                Row(
+                  children: List.generate(circleCount, (col) {
+                    bool shotMade = row < gameLogic.shotProgress.length &&
+                        col < gameLogic.shotProgress[row].length &&
+                        gameLogic.shotProgress[row][col];
 
-                  Color fillColor = Colors.transparent;
-                  if (shotMade) {
-                    fillColor =
-                        (row == 2 || row == 4) ? Colors.amber : Colors.green;
-                  }
+                    Color fillColor = Colors.transparent;
+                    if (shotMade) {
+                      fillColor =
+                          (row == 2 || row == 4) ? Colors.amber : Colors.green;
+                    }
 
-                  return Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 1), // Better spacing
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: fillColor,
-                        border: Border.all(color: Colors.white, width: 1),
+                    return Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 1), // Better spacing
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: fillColor,
+                          border: Border.all(color: Colors.white, width: 1),
+                        ),
                       ),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          );
-        }),
-      ),
+                    );
+                  }),
+                ),
+              ],
+            );
+          }),
+        ),
       ),
     );
   }
 }
+
 // Add this widget to your file
 class DigitalNumber extends StatelessWidget {
   final int number;
@@ -542,7 +576,7 @@ class DigitalNumber extends StatelessWidget {
       painter: DigitalNumberPainter(
         number: number,
         color: color,
-        glowIntensity: isWarning ? 0.9 : 0.7,  // Increased glow intensity
+        glowIntensity: isWarning ? 0.9 : 0.7, // Increased glow intensity
       ),
     );
   }
@@ -556,7 +590,7 @@ class DigitalNumberPainter extends CustomPainter {
   DigitalNumberPainter({
     required this.number,
     required this.color,
-    this.glowIntensity = 0.7,  // Default higher glow
+    this.glowIntensity = 0.7, // Default higher glow
   });
 
   @override
@@ -564,117 +598,175 @@ class DigitalNumberPainter extends CustomPainter {
     final double segmentWidth = size.width * 0.15;
     final double segmentLength = size.width * 0.8;
     final double gap = size.width * 0.08;
-    
+
     final Paint segmentPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    
+
     // Enhanced glow with multiple layers for more realistic LED effect
     final Paint strongGlowPaint = Paint()
       ..color = color.withOpacity(glowIntensity)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5.0);
-      
+
     final Paint softGlowPaint = Paint()
       ..color = color.withOpacity(glowIntensity * 0.7)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8.0);
-    
+
     // Draw each segment based on the digit
     final segments = _getActiveSegments(number);
-    
+
     // Positions for each segment (a-g)
     // a: top horizontal
     if (segments.contains('a')) {
-      _drawHorizontalSegment(canvas, Offset(gap, 0), segmentLength, segmentWidth, segmentPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, 0), segmentLength, segmentWidth, strongGlowPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, 0), segmentLength, segmentWidth, softGlowPaint);
+      _drawHorizontalSegment(
+          canvas, Offset(gap, 0), segmentLength, segmentWidth, segmentPaint);
+      _drawHorizontalSegment(
+          canvas, Offset(gap, 0), segmentLength, segmentWidth, strongGlowPaint);
+      _drawHorizontalSegment(
+          canvas, Offset(gap, 0), segmentLength, segmentWidth, softGlowPaint);
     }
-    
+
     // b: top-right vertical
     if (segments.contains('b')) {
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap), size.height * 0.42, segmentWidth, segmentPaint);
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap), size.height * 0.42, segmentWidth, strongGlowPaint);
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap), size.height * 0.42, segmentWidth, softGlowPaint);
+      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap),
+          size.height * 0.42, segmentWidth, segmentPaint);
+      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap),
+          size.height * 0.42, segmentWidth, strongGlowPaint);
+      _drawVerticalSegment(canvas, Offset(gap + segmentLength, gap),
+          size.height * 0.42, segmentWidth, softGlowPaint);
     }
-    
+
     // c: bottom-right vertical
     if (segments.contains('c')) {
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, segmentPaint);
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, strongGlowPaint);
-      _drawVerticalSegment(canvas, Offset(gap + segmentLength, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, softGlowPaint);
+      _drawVerticalSegment(
+          canvas,
+          Offset(gap + segmentLength, size.height * 0.5 + gap),
+          size.height * 0.42,
+          segmentWidth,
+          segmentPaint);
+      _drawVerticalSegment(
+          canvas,
+          Offset(gap + segmentLength, size.height * 0.5 + gap),
+          size.height * 0.42,
+          segmentWidth,
+          strongGlowPaint);
+      _drawVerticalSegment(
+          canvas,
+          Offset(gap + segmentLength, size.height * 0.5 + gap),
+          size.height * 0.42,
+          segmentWidth,
+          softGlowPaint);
     }
-    
+
     // d: bottom horizontal
     if (segments.contains('d')) {
-      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth), segmentLength, segmentWidth, segmentPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth), segmentLength, segmentWidth, strongGlowPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth), segmentLength, segmentWidth, softGlowPaint);
+      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth),
+          segmentLength, segmentWidth, segmentPaint);
+      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth),
+          segmentLength, segmentWidth, strongGlowPaint);
+      _drawHorizontalSegment(canvas, Offset(gap, size.height - segmentWidth),
+          segmentLength, segmentWidth, softGlowPaint);
     }
-    
+
     // e: bottom-left vertical
     if (segments.contains('e')) {
-      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, segmentPaint);
-      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, strongGlowPaint);
-      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap), size.height * 0.42, segmentWidth, softGlowPaint);
+      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap),
+          size.height * 0.42, segmentWidth, segmentPaint);
+      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap),
+          size.height * 0.42, segmentWidth, strongGlowPaint);
+      _drawVerticalSegment(canvas, Offset(0, size.height * 0.5 + gap),
+          size.height * 0.42, segmentWidth, softGlowPaint);
     }
-    
+
     // f: top-left vertical
     if (segments.contains('f')) {
-      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42, segmentWidth, segmentPaint);
-      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42, segmentWidth, strongGlowPaint);
-      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42, segmentWidth, softGlowPaint);
+      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42,
+          segmentWidth, segmentPaint);
+      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42,
+          segmentWidth, strongGlowPaint);
+      _drawVerticalSegment(canvas, Offset(0, gap), size.height * 0.42,
+          segmentWidth, softGlowPaint);
     }
-    
+
     // g: middle horizontal
     if (segments.contains('g')) {
-      _drawHorizontalSegment(canvas, Offset(gap, size.height * 0.5 - segmentWidth / 2), segmentLength, segmentWidth, segmentPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, size.height * 0.5 - segmentWidth / 2), segmentLength, segmentWidth, strongGlowPaint);
-      _drawHorizontalSegment(canvas, Offset(gap, size.height * 0.5 - segmentWidth / 2), segmentLength, segmentWidth, softGlowPaint);
+      _drawHorizontalSegment(
+          canvas,
+          Offset(gap, size.height * 0.5 - segmentWidth / 2),
+          segmentLength,
+          segmentWidth,
+          segmentPaint);
+      _drawHorizontalSegment(
+          canvas,
+          Offset(gap, size.height * 0.5 - segmentWidth / 2),
+          segmentLength,
+          segmentWidth,
+          strongGlowPaint);
+      _drawHorizontalSegment(
+          canvas,
+          Offset(gap, size.height * 0.5 - segmentWidth / 2),
+          segmentLength,
+          segmentWidth,
+          softGlowPaint);
     }
   }
-  
-  void _drawHorizontalSegment(Canvas canvas, Offset position, double length, double width, Paint paint) {
+
+  void _drawHorizontalSegment(Canvas canvas, Offset position, double length,
+      double width, Paint paint) {
     final rect = Rect.fromLTWH(position.dx, position.dy, length, width);
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(width / 2));
     canvas.drawRRect(rrect, paint);
   }
-  
-  void _drawVerticalSegment(Canvas canvas, Offset position, double length, double width, Paint paint) {
+
+  void _drawVerticalSegment(Canvas canvas, Offset position, double length,
+      double width, Paint paint) {
     final rect = Rect.fromLTWH(position.dx, position.dy, width, length);
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(width / 2));
     canvas.drawRRect(rrect, paint);
   }
-  
+
   List<String> _getActiveSegments(int digit) {
     // Segments a through g that should be lit for each digit
     switch (digit) {
-      case 0: return ['a', 'b', 'c', 'd', 'e', 'f'];
-      case 1: return ['b', 'c'];
-      case 2: return ['a', 'b', 'g', 'e', 'd'];
-      case 3: return ['a', 'b', 'g', 'c', 'd'];
-      case 4: return ['f', 'g', 'b', 'c'];
-      case 5: return ['a', 'f', 'g', 'c', 'd'];
-      case 6: return ['a', 'f', 'g', 'c', 'd', 'e'];
-      case 7: return ['a', 'b', 'c'];
-      case 8: return ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-      case 9: return ['a', 'b', 'c', 'd', 'f', 'g'];
-      default: return [];
+      case 0:
+        return ['a', 'b', 'c', 'd', 'e', 'f'];
+      case 1:
+        return ['b', 'c'];
+      case 2:
+        return ['a', 'b', 'g', 'e', 'd'];
+      case 3:
+        return ['a', 'b', 'g', 'c', 'd'];
+      case 4:
+        return ['f', 'g', 'b', 'c'];
+      case 5:
+        return ['a', 'f', 'g', 'c', 'd'];
+      case 6:
+        return ['a', 'f', 'g', 'c', 'd', 'e'];
+      case 7:
+        return ['a', 'b', 'c'];
+      case 8:
+        return ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      case 9:
+        return ['a', 'b', 'c', 'd', 'f', 'g'];
+      default:
+        return [];
     }
   }
 
   @override
   bool shouldRepaint(DigitalNumberPainter oldDelegate) {
-    return oldDelegate.number != number || 
-           oldDelegate.color != color ||
-           oldDelegate.glowIntensity != glowIntensity;
+    return oldDelegate.number != number ||
+        oldDelegate.color != color ||
+        oldDelegate.glowIntensity != glowIntensity;
   }
 }
 
 class ShotClockWidget extends StatelessWidget {
   final int timeLeft;
   final bool isWarning;
-  
+
   const ShotClockWidget({
-    Key? key, 
+    Key? key,
     required this.timeLeft,
     this.isWarning = false,
   }) : super(key: key);
@@ -683,8 +775,9 @@ class ShotClockWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final tens = (timeLeft ~/ 10) % 10;
     final ones = timeLeft % 10;
-    final Color digitColor = isWarning ? Colors.yellow.shade500 : Colors.yellow.shade600;
-    
+    final Color digitColor =
+        isWarning ? Colors.yellow.shade500 : Colors.yellow.shade600;
+
     return Container(
       width: 100,
       height: 70,
@@ -697,8 +790,8 @@ class ShotClockWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: isWarning 
-                ? Colors.red.withOpacity(0.8) 
+            color: isWarning
+                ? Colors.red.withOpacity(0.8)
                 : Colors.white.withOpacity(0.3),
             blurRadius: isWarning ? 12 : 6,
             spreadRadius: isWarning ? 3 : 1,
@@ -714,7 +807,10 @@ class ShotClockWidget extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
-                    colors: [Colors.transparent, Colors.white.withOpacity(0.15)],
+                    colors: [
+                      Colors.transparent,
+                      Colors.white.withOpacity(0.15)
+                    ],
                     stops: [0.7, 1.0],
                   ),
                 ),
@@ -736,7 +832,7 @@ class ShotClockWidget extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Digital display
           Center(
             child: Row(
@@ -765,9 +861,9 @@ class ShotClockWidget extends StatelessWidget {
 // For a pulsing effect when time is running low
 class PulsingShotClock extends StatefulWidget {
   final int timeLeft;
-  
+
   const PulsingShotClock({
-    Key? key, 
+    Key? key,
     required this.timeLeft,
   }) : super(key: key);
 
@@ -775,10 +871,11 @@ class PulsingShotClock extends StatefulWidget {
   _PulsingShotClockState createState() => _PulsingShotClockState();
 }
 
-class _PulsingShotClockState extends State<PulsingShotClock> with SingleTickerProviderStateMixin {
+class _PulsingShotClockState extends State<PulsingShotClock>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -786,23 +883,23 @@ class _PulsingShotClockState extends State<PulsingShotClock> with SingleTickerPr
       duration: const Duration(milliseconds: 500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _animation = Tween<double>(begin: 1.0, end: 1.1).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final bool isWarning = widget.timeLeft <= 10;
-    
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
