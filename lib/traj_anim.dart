@@ -21,13 +21,17 @@ class _BallTrajectoryState extends State<BallTrajectory>
   late AnimationController _controller;
   late Animation<Offset> _trajectory;
   late Animation<double> _scale;
+  late Animation<double> _bounce;
+  late double _vxGround; // Store vxGround for rolling effect
+  late double _tTotal; // Store tTotal for bounce and roll calculations
 
   @override
   void initState() {
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration:
+          const Duration(milliseconds: 3500), // Extended for pronounced bounce
       vsync: this,
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
@@ -46,47 +50,99 @@ class _BallTrajectoryState extends State<BallTrajectory>
           ][Random().nextInt(3)];
 
     final groundPoint =
-        widget.shotMade ? Offset(0.0, 1.0) : Offset(endOffset.dx * 4, 1.0);
+        Offset(endOffset.dx * 4, 1.0); // Same groundPoint for both
 
     // Physics parameters
     const double g =
         10.0; // Gravity in Flutter units/s² (positive, pulls downward)
     final double tPeak = widget.shotMade ? 1.3 : 1.6; // Time to reach endOffset
-    final double tTotal = 2.0; // Total duration in seconds
+    _tTotal =
+        2.0; // Total duration in seconds for trajectory, stored as instance variable
 
     // Calculate initial velocities to hit endOffset at tPeak
     final double vx0 = (endOffset.dx - startOffset.dx) / tPeak;
     final double vy0 =
         (endOffset.dy - startOffset.dy - 0.5 * g * tPeak * tPeak) / tPeak;
 
-    // For missed shots, calculate velocity at tPeak to reach groundPoint by tTotal
-    final double tGround = tTotal - tPeak; // Time from endOffset to groundPoint
-    final double vxGround =
-        widget.shotMade ? 0.0 : (groundPoint.dx - endOffset.dx) / tGround;
-    final double vyGround = widget.shotMade
-        ? 0.0
-        : (groundPoint.dy - endOffset.dy - 0.5 * g * tGround * tGround) /
-            tGround;
+    // Calculate velocity from endOffset to groundPoint for both made and missed shots
+    final double tGround =
+        _tTotal - tPeak; // Time from endOffset to groundPoint
+    _vxGround = (groundPoint.dx - endOffset.dx) / tGround; // Store for rolling
+    final double vyGround =
+        (groundPoint.dy - endOffset.dy - 0.5 * g * tGround * tGround) / tGround;
 
     _trajectory = _PhysicsAnimation(
       controller: _controller,
       startOffset: startOffset,
       vx0: vx0,
       vy0: vy0,
-      vxGround: vxGround,
+      vxGround: _vxGround,
       vyGround: vyGround,
       g: g,
       tPeak: tPeak,
-      tTotal: tTotal,
+      tTotal: _tTotal,
+      shotMade: widget.shotMade,
     );
 
-    // Scale animation: from 1.1 to 0.75
-    _scale = Tween<double>(
-      begin: 0.45,
-      end: 0.25,
-    ).animate(CurvedAnimation(
+    // Scale animation: from 0.45 to 0.25 until ground, then hold
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.45, end: 0.25).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: _tTotal / 3.5 * 100, // Scale until tTotal (2s)
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.25, end: 0.25), // Hold scale at 0.25
+        weight: (1.0 - _tTotal / 3.5) * 100, // Remainder of animation
+      ),
+    ]).animate(_controller);
+
+    // Bounce animation: pronounced vertical oscillation with higher first bounce
+    _bounce = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: -0.5).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: 25.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -0.5, end: 0.0).chain(
+          CurveTween(curve: Curves.easeIn),
+        ),
+        weight: 25.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: -0.3).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: 15.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -0.3, end: 0.0).chain(
+          CurveTween(curve: Curves.easeIn),
+        ),
+        weight: 15.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: -0.2).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: 10.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -0.2, end: 0.0).chain(
+          CurveTween(curve: Curves.easeIn),
+        ),
+        weight: 10.0,
+      ),
+    ]).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOut,
+      curve: Interval(
+        _tTotal / 3.5, // Start bounce when ball reaches groundPoint
+        1.0,
+        curve: Curves.linear,
+      ),
     ));
 
     _controller.forward();
@@ -97,8 +153,21 @@ class _BallTrajectoryState extends State<BallTrajectory>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
+        // Calculate rolling offset during bounce phase
+        final double bounceProgress =
+            (_controller.value - _tTotal / 3.5) / (1.0 - _tTotal / 3.5);
+        final double rollOffset = _controller.value >= _tTotal / 3.5
+            ? _vxGround *
+                bounceProgress *
+                75 *
+                0.5 // Roll in direction of vxGround
+            : 0.0;
+
         return Transform.translate(
-          offset: _trajectory.value * 75,
+          offset: Offset(
+            _trajectory.value.dx * 75 + rollOffset, // Add rolling offset
+            _trajectory.value.dy * 75 + _bounce.value * 100,
+          ),
           child: Transform.scale(
             scale: _scale.value,
             child: Image.asset(
@@ -131,6 +200,7 @@ class _PhysicsAnimation extends Animation<Offset>
   final double g;
   final double tPeak;
   final double tTotal;
+  final bool shotMade;
   final Animation<double> _parent;
 
   _PhysicsAnimation({
@@ -143,6 +213,7 @@ class _PhysicsAnimation extends Animation<Offset>
     required this.g,
     required this.tPeak,
     required this.tTotal,
+    required this.shotMade,
   }) : _parent = controller;
 
   @override
@@ -150,15 +221,15 @@ class _PhysicsAnimation extends Animation<Offset>
 
   @override
   Offset get value {
-    final t = _parent.value * tTotal; // Scale to total duration (2s)
+    final t = _parent.value * 3.5; // Scale to total animation duration (3.5s)
     if (t <= tPeak) {
       // Initial trajectory to endOffset
       final x = startOffset.dx + vx0 * t;
       final y = startOffset.dy + vy0 * t + 0.5 * g * t * t;
       return Offset(x, y);
     } else {
-      // From endOffset to groundPoint (only for missed shots)
-      final tGround = t - tPeak;
+      // From endOffset to groundPoint for both made and missed shots
+      final tGround = min(t - tPeak, tTotal - tPeak); // Cap at groundPoint time
       final x = startOffset.dx + vx0 * tPeak + vxGround * tGround;
       final y = startOffset.dy +
           vy0 * tPeak +
