@@ -20,14 +20,14 @@ class _BallTrajectoryState extends State<BallTrajectory>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _trajectory;
-  late Animation<double> _scale; // Added for scaling animation
+  late Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
@@ -36,27 +36,57 @@ class _BallTrajectoryState extends State<BallTrajectory>
       });
 
     // Trajectory animation
-    _trajectory = Tween<Offset>(
-      begin: Offset(0.0, 1.0), // Start near bottom
-      end: widget.shotMade
-          ? Offset(0.0, -1.95)
-          : [
-              Offset(-0.2, -2.5), // Base value
-              Offset(0.2, -3.0), // Base value
-              Offset(0.5, -2.4), // Base value
-            ][Random().nextInt(3)],
-    ).animate(CurvedAnimation(
+    final endOffset = widget.shotMade
+        ? Offset(0.0, -1.95)
+        : [
+            Offset(-0.2, -2.5), // Base value
+            Offset(0.2, -2.5), // Base value
+            Offset(-0.2, -2.7), // Base value
+          ][Random().nextInt(3)];
+
+    // Define intermediate point (peak of the arc)
+    final midPoint = widget.shotMade
+        ? Offset(0.0, -2.1) // Higher peak for made shots
+        : Offset(endOffset.dx / 2, -2.8); // Midpoint adjusted for missed shots
+
+    final groundPoint = widget.shotMade
+        ? Offset(0.0, 1.0)
+        : Offset(endOffset.dx * 4, 1.0); // adjusted for missed shots
+
+    _trajectory = TweenSequence<Offset>([
+      TweenSequenceItem(
+        tween: Tween<Offset>(
+          begin: Offset(0.0, 1.0), // Start near bottom
+          end: midPoint, // Peak of arc
+        ),
+        weight: 65.0, // 50% of animation time to reach peak
+      ),
+      TweenSequenceItem(
+        tween: Tween<Offset>(
+          begin: midPoint, // From peak
+          end: endOffset, // To final endpoint
+        ),
+        weight: 15.0, // 50% of animation time to descend
+      ),
+      TweenSequenceItem(
+        tween: Tween<Offset>(
+          begin: endOffset, // From peak
+          end: groundPoint, // To final endpoint
+        ),
+        weight: 20.0, // 50% of animation time to descend
+      ),
+    ]).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOut,
     ));
 
-    // Scale animation: from 1.0 to 0.8
+    // Scale animation: from 1.1 to 0.75
     _scale = Tween<double>(
       begin: 1.1, // Full size at start
       end: 0.75, // 75% size at end
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOut, // Same curve as trajectory for smoothness
+      curve: Curves.easeOut,
     ));
 
     _controller.forward();
@@ -70,7 +100,7 @@ class _BallTrajectoryState extends State<BallTrajectory>
         return Transform.translate(
           offset: _trajectory.value * 75,
           child: Transform.scale(
-            scale: _scale.value, // Apply scale animation
+            scale: _scale.value,
             child: Image.asset(
               "assets/images/ball.png",
               width: 24,
