@@ -5,7 +5,6 @@ class BallTrajectory extends StatefulWidget {
   final bool shotMade;
   final double releaseDifference;
   final VoidCallback onAnimationComplete;
-  
 
   BallTrajectory({
     required this.shotMade,
@@ -83,8 +82,8 @@ class _BallTrajectoryState extends State<BallTrajectory>
 
     // Scale animation: from 1.1 to 0.75
     _scale = Tween<double>(
-      begin: 1.1,
-      end: 0.75,
+      begin: 0.45,
+      end: 0.25,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOut,
@@ -105,8 +104,8 @@ class _BallTrajectoryState extends State<BallTrajectory>
             child: Image.asset(
               "assets/images/ball.png",
               width: 8,
-            height: 8,
-            fit: BoxFit.contain,
+              height: 8,
+              fit: BoxFit.contain,
             ),
           ),
         );
