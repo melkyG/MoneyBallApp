@@ -5,6 +5,7 @@ class BallTrajectory extends StatefulWidget {
   final bool shotMade;
   final double releaseDifference;
   final VoidCallback onAnimationComplete;
+  
 
   BallTrajectory({
     required this.shotMade,
@@ -103,7 +104,9 @@ class _BallTrajectoryState extends State<BallTrajectory>
             scale: _scale.value,
             child: Image.asset(
               "assets/images/ball.png",
-              width: 24,
+              width: 8,
+            height: 8,
+            fit: BoxFit.contain,
             ),
           ),
         );

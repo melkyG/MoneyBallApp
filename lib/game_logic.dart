@@ -20,7 +20,7 @@ class GameLogic {
   double lastDifference = 0.0;
   double lastDifferenceTrue = 0.0;
   double getMissChance(double difference) {
-    if (difference < 0.015) return 0.0;
+    if (difference < 0.015) return 0;
     if (difference < 0.04) return 0.55;
     if (difference < 0.07) return 0.7;
     if (difference < 0.08) return 0.9;
@@ -58,7 +58,7 @@ class GameLogic {
     inGame = true;
     score = 0;
     shotsTaken = 0;
-    timeLeft = 60;
+    timeLeft = 70;
     _generateShotValues();
     resetOptimalTime();
     shotProgress = List.generate(7, (_) => []);

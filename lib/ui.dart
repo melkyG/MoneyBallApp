@@ -16,10 +16,18 @@ class _BasketballGameState extends State<BasketballGame>
   String _currentMessage = "";
   Color _messageColor = Colors.white;
   bool _showMessage = false;
+  bool showReadyBall = false;
+  int shotSpamTimer = 1250;
 
   //traj
   bool showBallTrajectory = false;
   double releaseDifference = 0.0;
+  DateTime? _lastShotTime;
+
+  // Initial "ready" position for the ball (relative to 360x640 container)
+  final double readyBallLeft = 160; // Centered: (360 - 40) / 2 ≈ 160
+  final double readyBallTop = 450; // Near bottom for 3-point line perspective
+
 
   // Animation controller for uncover/cover
   late AnimationController _messageAnimController;
@@ -243,7 +251,7 @@ class _BasketballGameState extends State<BasketballGame>
                     width: 40,
                   ),
                   Transform.translate(
-                    offset: Offset(0, -12.5), // move the net up
+                    offset: Offset(0, -12.5),
                     child: AnimatedBasketballNet(
                       width: 40,
                       height: 45,
@@ -269,33 +277,47 @@ class _BasketballGameState extends State<BasketballGame>
                 : gameLogic.inGame
                     ? GestureDetector(
                         onPanStart: (_) {
-                          if (gameLogic.shotsTaken < 27) {
+                          final now = DateTime.now();
+                          final canShoot = _lastShotTime == null || now.difference(_lastShotTime!).inMilliseconds >= shotSpamTimer;
+
+                          if (gameLogic.shotsTaken < 27 && canShoot) {
+                            setState((){});
                             gameLogic.startHolding(
                               () => setState(() {}),
-                              () => gameLogic
-                                  .startGameTimer(() => setState(() {})),
+                              () => gameLogic.startGameTimer(() => setState(() {})),
                             );
                           }
                         },
+
                         onPanEnd: (_) {
                           if (gameLogic.shotsTaken < 27) {
                             if (gameLogic.isHolding) {
                               print("releasing");
                               gameLogic.lastDifference =
-                                  (gameLogic.heldTime - gameLogic.optimalTime)
-                                      .abs();
+                                  (gameLogic.heldTime - gameLogic.optimalTime).abs();
                               gameLogic.releaseShot(() {
                                 setState(() {
-                                  releaseDifference =
-                                      gameLogic.lastDifferenceTrue;
+                                  releaseDifference = gameLogic.lastDifferenceTrue;
                                   showBallTrajectory = true;
+                                  showReadyBall = false;
+                                  // Check if next shot is ready after 800ms
+                                  Future.delayed(Duration(milliseconds: shotSpamTimer), () {
+                                    final now = DateTime.now();
+                                    final canShoot = _lastShotTime == null || now.difference(_lastShotTime!).inMilliseconds >= shotSpamTimer;
+                                    if (canShoot && gameLogic.shotsTaken < 27) {
+                                      setState(() {
+                                        showReadyBall = true; // Show ball when next shot is ready
+                                      });
+                                    }
+                                  });
+                                  _lastShotTime = DateTime.now(); // 🕒 Mark the time the shot was made
                                 });
-                                showReleaseMessage(
-                                    gameLogic.lastDifferenceTrue);
+                                showReleaseMessage(gameLogic.lastDifferenceTrue);
                               });
                             }
                           }
                         },
+
                         child: Container(
                           color: Colors.transparent,
                           width: double.infinity,
@@ -335,16 +357,7 @@ class _BasketballGameState extends State<BasketballGame>
                               ),
                               if (gameLogic.isHolding) buildShootingBar(),
                               SizedBox(height: 50),
-                              if (showBallTrajectory)
-                                BallTrajectory(
-                                  shotMade: gameLogic.shotMade,
-                                  releaseDifference: releaseDifference,
-                                  onAnimationComplete: () {
-                                    setState(() {
-                                      showBallTrajectory = false;
-                                    });
-                                  },
-                                ),
+                              // Remove BallTrajectory from here
                             ],
                           ),
                         ),
@@ -371,8 +384,13 @@ class _BasketballGameState extends State<BasketballGame>
                             ],
                             SizedBox(height: 20),
                             ElevatedButton(
-                              onPressed: () =>
-                                  setState(() => gameLogic.startGame()),
+                              onPressed: () {
+                                setState(() {
+                                  gameLogic.startGame();
+                                  showReadyBall = true; // Show ball when game starts
+                                  _lastShotTime = null; // Reset shot time
+                                });
+                              },   
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     Color.fromARGB(255, 48, 245, 179),
@@ -397,10 +415,50 @@ class _BasketballGameState extends State<BasketballGame>
             ClipRect(
               child: buildAnimatedMessage(),
             ),
-        ],
-      ),
-    );
-  }
+          // Add BallTrajectory here in the Stack
+          if (showBallTrajectory)
+            Align(
+              alignment: Alignment.center, // Center the trajectory
+              child: SizedBox(
+                width: 100, // Constrain the container size
+                height: 100,
+                child: BallTrajectory(
+                  shotMade: gameLogic.shotMade,
+                  releaseDifference: releaseDifference,
+                  onAnimationComplete: () {
+                    setState(() {
+                      showBallTrajectory = false;
+                      // Check if shot is ready
+                      final now = DateTime.now();
+                      bool canShoot = _lastShotTime == null || now.difference(_lastShotTime!).inMilliseconds >= 800;
+                      if (gameLogic.timeLeft > 0) {canShoot = false;}
+                      if (canShoot && gameLogic.shotsTaken < 27 && gameLogic.timeLeft > 0) {
+                        showReadyBall = true;
+                      }
+                    });
+                  },
+                ),
+              ),
+            ),
+            if (showReadyBall)
+              Positioned(
+                bottom: 200,
+                left: 80,
+                child: Column(
+                  children: [
+                    Image.asset(
+                      "assets/images/ball.png",
+                      width: 32, // Adjust size as needed
+                      height: 32,
+                      fit: BoxFit.contain,
+                        ),
+                      ],
+                    ),
+                   ),
+                  ],
+                ),
+              );
+            }
 
   Widget buildShootingBar() {
     // Define the time range for the bar
@@ -425,8 +483,9 @@ class _BasketballGameState extends State<BasketballGame>
     indicatorPosition = indicatorPosition.clamp(0, barHeight);
 
     // Check if the indicator is within the target band
-    bool isInTargetZone = (indicatorPosition >= targetBandBottom &&
-        indicatorPosition <= targetBandBottom + targetBandHeight);
+    //bool isInTargetZone = (indicatorPosition >= targetBandBottom &&
+    //    indicatorPosition <= targetBandBottom + targetBandHeight);
+    //bool excellentRelease = (gameLogic.getMissChance(gameLogic.lastDifference) == 0);    
 
     return Padding(
       padding: const EdgeInsets.symmetric(),
@@ -465,9 +524,7 @@ class _BasketballGameState extends State<BasketballGame>
                   width: barWidth,
                   height: targetBandHeight * 0.8,
                   decoration: BoxDecoration(
-                    color: isInTargetZone
-                        ? Color.fromARGB(255, 48, 245, 179)
-                        : const Color.fromARGB(255, 221, 221, 221),
+                    color: const Color.fromARGB(255, 221, 221, 221),
                     border: Border.all(
                       color:
                           const Color.fromARGB(255, 0, 0, 0).withOpacity(0.8),
