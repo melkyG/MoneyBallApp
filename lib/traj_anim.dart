@@ -36,7 +36,7 @@ class _BallTrajectoryState extends State<BallTrajectory>
       });
 
     // Physics-based trajectory
-    final startOffset = Offset(0.0, 1.0);
+    final startOffset = Offset(-1.1, 1.15);
     final endOffset = widget.shotMade
         ? Offset(0.0, -1.95)
         : [
